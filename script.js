@@ -7,11 +7,9 @@ const formPedido = document.getElementById('form-pedido');
 const modalTitle = document.getElementById('modal-title');
 const submitBtn = document.getElementById('submit-btn');
 
-// Elementos do Login e Troca de Senha
+// Elementos do Login
 const loginModal = document.getElementById('login-modal');
 const loginForm = document.getElementById('login-form');
-const passwordModal = document.getElementById('password-modal');
-const passwordForm = document.getElementById('password-form');
 
 // Array para armazenar os pedidos localmente
 let pedidos = [];
@@ -125,45 +123,33 @@ async function excluirPedido(id) {
     pedidoRef.remove();
 }
 
-// **LÓGICA DE AUTENTICAÇÃO E LOGIN**
+// **LÓGICA DE AUTENTICAÇÃO SIMPLIFICADA**
 
-// Função de login
-function loginUser(email, password) {
-    auth.signInWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-            const user = userCredential.user;
-            // Checa no banco de dados se a senha precisa ser trocada
-            database.ref('users/' + user.uid).once('value').then((snapshot) => {
-                const userData = snapshot.val();
-                if (userData && userData.needsPasswordChange) {
-                    passwordModal.style.display = 'block';
-                    loginModal.style.display = 'none';
-                } else {
-                    alert('Login bem-sucedido!');
-                    loginModal.style.display = 'none';
-                    document.getElementById('add-pedido-btn').style.display = 'block';
-                    buscarERenderizarPedidos();
-                }
-            });
+// Função para criar uma nova conta (apenas para o administrador)
+// Você pode usar esta função no console do navegador para criar contas
+// Exemplo: createEmployeeAccount('novo.funcionario@empresa.com', 'senha_temporaria');
+function createEmployeeAccount(email, password) {
+    auth.createUserWithEmailAndPassword(email, password)
+        .then(() => {
+            alert('Conta de funcionário criada com sucesso!');
         })
         .catch((error) => {
-            alert('Erro de login: ' + error.message);
+            alert('Erro ao criar conta: ' + error.message);
         });
 }
 
-// Função para trocar a senha
-function changePassword(newPassword) {
-    const user = auth.currentUser;
-    user.updatePassword(newPassword)
+// Função de login simplificada
+function loginUser(email, password) {
+    auth.signInWithEmailAndPassword(email, password)
         .then(() => {
-            console.log("Senha alterada com sucesso!");
-            // Remove a flag de primeiro login no banco de dados
-            database.ref('users/' + user.uid + '/needsPasswordChange').set(false);
-            passwordModal.style.display = 'none';
-            alert('Senha alterada com sucesso! Você pode agora acessar o sistema.');
+            alert('Login bem-sucedido!');
+            // Esconde o modal de login e mostra o sistema
+            loginModal.style.display = 'none';
+            document.getElementById('add-pedido-btn').style.display = 'block';
+            buscarERenderizarPedidos();
         })
         .catch((error) => {
-            console.error("Erro ao alterar a senha:", error);
+            alert('Erro de login: ' + error.message);
         });
 }
 
@@ -173,12 +159,6 @@ loginForm.addEventListener('submit', (e) => {
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
     loginUser(email, password);
-});
-
-passwordForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const newPassword = document.getElementById('new-password').value;
-    changePassword(newPassword);
 });
 
 // Checa o estado da autenticação ao carregar a página
