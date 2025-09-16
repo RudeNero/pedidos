@@ -1,5 +1,7 @@
 // Seleção de elementos do DOM
 const addPedidoBtn = document.getElementById('add-pedido-btn');
+const logoutBtn = document.getElementById('logout-btn');
+const accountMenuBtn = document.getElementById('account-menu-btn');
 const listaPedidos = document.getElementById('lista-pedidos');
 const modal = document.getElementById('modal');
 const closeModalBtn = document.querySelector('.close-btn');
@@ -123,11 +125,7 @@ async function excluirPedido(id) {
     pedidoRef.remove();
 }
 
-// **LÓGICA DE AUTENTICAÇÃO SIMPLIFICADA**
-
-// Função para criar uma nova conta (apenas para o administrador)
-// Você pode usar esta função no console do navegador para criar contas
-// Exemplo: createEmployeeAccount('novo.funcionario@empresa.com', 'senha_temporaria');
+// Lógica de autenticação
 function createEmployeeAccount(email, password) {
     auth.createUserWithEmailAndPassword(email, password)
         .then(() => {
@@ -138,18 +136,14 @@ function createEmployeeAccount(email, password) {
         });
 }
 
-// Função de login simplificada
 function loginUser(email, password) {
     auth.signInWithEmailAndPassword(email, password)
         .then(() => {
             alert('Login bem-sucedido!');
-            // Esconde o modal de login e mostra o sistema
             loginModal.style.display = 'none';
-            document.getElementById('add-pedido-btn').style.display = 'block';
-            buscarERenderizarPedidos();
         })
-        .catch((error) => {
-            alert('Erro de login: ' + error.message);
+        .catch(() => {
+            alert('XIIIIII... errou a senha, ein! 🤨');
         });
 }
 
@@ -161,17 +155,29 @@ loginForm.addEventListener('submit', (e) => {
     loginUser(email, password);
 });
 
+// Evento do botão de logout
+logoutBtn.addEventListener('click', () => {
+    auth.signOut().then(() => {
+        alert('Você foi desconectado com sucesso.');
+    }).catch((error) => {
+        console.error('Erro ao fazer logout:', error);
+    });
+});
+
 // Checa o estado da autenticação ao carregar a página
 auth.onAuthStateChanged((user) => {
     if (user) {
-        // Usuário logado: esconde o login e mostra o conteúdo
+        // Usuário logado: esconde o login e mostra os botões de ação
         loginModal.style.display = 'none';
-        document.getElementById('add-pedido-btn').style.display = 'block';
+        addPedidoBtn.style.display = 'block';
+        accountMenuBtn.style.display = 'block';
         buscarERenderizarPedidos();
     } else {
-        // Usuário deslogado: mostra a tela de login
+        // Usuário deslogado: mostra a tela de login e esconde os botões
         loginModal.style.display = 'block';
-        document.getElementById('add-pedido-btn').style.display = 'none';
+        addPedidoBtn.style.display = 'none';
+        accountMenuBtn.style.display = 'none';
+        listaPedidos.innerHTML = '';
     }
 });
 
@@ -186,10 +192,8 @@ window.addEventListener('click', (event) => {
 
 formPedido.addEventListener('submit', async (event) => {
     event.preventDefault();
-
     const modo = formPedido.getAttribute('data-modo');
     const pedidoId = document.getElementById('pedido-id').value;
-
     const dadosDoForm = {
         tipo: document.getElementById('tipo').value,
         endereco: document.getElementById('endereco').value,
@@ -197,12 +201,10 @@ formPedido.addEventListener('submit', async (event) => {
         telefone: document.getElementById('telefone').value,
         email: document.getElementById('email').value,
     };
-
     if (modo === 'criar') {
         await adicionarPedido(dadosDoForm);
     } else if (modo === 'editar') {
         await atualizarPedido(pedidoId, dadosDoForm);
     }
-
     fecharModal();
 });

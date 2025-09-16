@@ -1,40 +1,49 @@
 :root {
-    --primary-color: #3498db;
-    --secondary-color: #2c3e50;
-    --completed-color: #2ecc71;
-    --delete-color: #e74c3c;
-    --bg-color: #f4f7f6;
-    --card-bg-color: #ffffff;
-    --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+--primary-color: #3498db;
+--secondary-color: #2c3e50;
+--completed-color: #2ecc71;
+--delete-color: #e74c3c;
+--bg-color: #f4f7f6;
+--card-bg-color: #ffffff;
+--box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: sans-serif;
+box-sizing: border-box;
+margin: 0;
+padding: 0;
+font-family: sans-serif;
 }
 
 body {
-    background-color: var(--bg-color);
-    line-height: 1.6;
+background-color: var(--bg-color);
+line-height: 1.6;
 }
 
 header {
-    background-color: var(--secondary-color);
-    color: white;
-    padding: 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: var(--box-shadow);
+background-color: var(--secondary-color);
+color: white;
+padding: 1rem;
+display: flex;
+justify-content: space-between;
+align-items: center;
+box-shadow: var(--box-shadow);
 }
 
 header h1 {
-    font-size: 1.5rem;
+font-size: 1.5rem;
 }
 
-#add-pedido-btn {
+/* Estilos para o container dos botões de ação e do dropdown */
+.dropdown {
+    position: relative;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+/* Estilos para os botões */
+#add-pedido-btn, .dropbtn {
     background-color: var(--primary-color);
     color: white;
     border: none;
@@ -45,8 +54,43 @@ header h1 {
     transition: background-color 0.3s ease;
 }
 
-#add-pedido-btn:hover {
+#add-pedido-btn:hover, .dropbtn:hover {
     background-color: #2980b9;
+}
+
+/* Estilos para o conteúdo do dropdown (o menu que aparece) */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    top: 100%; /* Posiciona abaixo do botão */
+    right: 0;
+    background-color: var(--card-bg-color);
+    min-width: 160px;
+    box-shadow: var(--box-shadow);
+    z-index: 1;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.dropdown-content button {
+    color: var(--secondary-color);
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+}
+
+.dropdown-content button:hover {
+    background-color: var(--bg-color);
+}
+
+/* Regra para mostrar o dropdown quando o mouse estiver sobre o container */
+.dropdown:hover .dropdown-content {
+    display: block;
 }
 
 main {
