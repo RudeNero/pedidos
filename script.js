@@ -1,9 +1,5 @@
-// Passo 1: Inicialização do Supabase
-// SUBSTITUA estas variáveis com os dados do seu projeto
-const SUPABASE_URL = "https://bofxnitkcixtkmqbapdt.supabase.co"; 
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJvZnhuaXRrY2l4dGttcWJhcGR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgwMzk1MTgsImV4cCI6MjA3MzYxNTUxOH0.sYmR_EzKjlFmXVsV0Qfkz9GxX_t6XBZKR5-YqBo5tdc";
-
-const supabase = Supabase.createClient("https://bofxnitkcixtkmqbapdt.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJvZnhuaXRrY2l4dGttcWJhcGR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgwMzk1MTgsImV4cCI6MjA3MzYxNTUxOH0.sYmR_EzKjlFmXVsV0Qfkz9GxX_t6XBZKR5-YqBo5tdc");
+// A inicialização do Firebase já está no HTML, então não precisamos mais disso aqui.
+// Apenas use a variável 'database' que foi definida no HTML.
 
 // Seleção de elementos do DOM
 const addPedidoBtn = document.getElementById('add-pedido-btn');
@@ -92,76 +88,59 @@ function renderizarPedidos() {
     pedidos.forEach(pedido => renderizarPedido(pedido));
 }
 
-// Passo 2: Funções de CRUD usando Supabase
-// (CRUD = Create, Read, Update, Delete)
+// Funções de CRUD usando Firebase
 
-// Função para buscar e renderizar os pedidos do Supabase (READ)
-async function buscarERenderizarPedidos() {
-    console.log('Buscando pedidos do Supabase...');
-    const { data, error } = await supabase
-        .from('pedidos')
-        .select('*')
-        .order('id', { ascending: true }); // Ordena pelo ID para ter a sequência correta
-
-    if (error) {
-        console.error('Erro ao buscar pedidos:', error.message);
-        return;
-    }
-
-    pedidos = data; // Atualiza o array local com os dados do banco
-    renderizarPedidos(); // Renderiza a lista na tela
-    console.log('Pedidos buscados com sucesso!');
+// Função para buscar e renderizar os pedidos do Firebase (READ)
+// A função onValue é "real-time" e escuta por mudanças nos dados
+function buscarERenderizarPedidos() {
+    console.log('Buscando pedidos do Firebase...');
+    const pedidosRef = database.ref('pedidos');
+    pedidosRef.on('value', (snapshot) => {
+        pedidos = [];
+        snapshot.forEach((childSnapshot) => {
+            const pedido = childSnapshot.val();
+            pedidos.push({ id: childSnapshot.key, ...pedido });
+        });
+        renderizarPedidos();
+        console.log('Pedidos buscados e atualizados com sucesso!');
+    });
 }
 
 // Função para adicionar um novo pedido (CREATE)
 async function adicionarPedido(novoPedido) {
-    const { error } = await supabase
-        .from('pedidos')
-        .insert([{
-            tipo: novoPedido.tipo,
-            endereco: novoPedido.endereco,
-            cliente_nome: novoPedido.clienteNome,
-            telefone: novoPedido.telefone,
-            email: novoPedido.email,
-            status: 'Ativo'
-        }]);
-
-    if (error) {
-        console.error('Erro ao criar pedido:', error.message);
-    } else {
+    const newPedidoRef = database.ref('pedidos').push();
+    newPedidoRef.set({
+        tipo: novoPedido.tipo,
+        endereco: novoPedido.endereco,
+        cliente_nome: novoPedido.clienteNome,
+        telefone: novoPedido.telefone,
+        email: novoPedido.email,
+        status: 'Ativo'
+    }).then(() => {
         console.log('Pedido adicionado com sucesso!');
-        await buscarERenderizarPedidos();
-    }
+    }).catch((error) => {
+        console.error('Erro ao adicionar pedido:', error);
+    });
 }
 
 // Função para atualizar um pedido existente (UPDATE)
 async function atualizarPedido(id, updates) {
-    const { error } = await supabase
-        .from('pedidos')
-        .update(updates)
-        .eq('id', id);
-
-    if (error) {
-        console.error('Erro ao atualizar pedido:', error.message);
-    } else {
+    const pedidoRef = database.ref('pedidos/' + id);
+    pedidoRef.update(updates).then(() => {
         console.log('Pedido atualizado com sucesso!');
-        await buscarERenderizarPedidos();
-    }
+    }).catch((error) => {
+        console.error('Erro ao atualizar pedido:', error);
+    });
 }
 
 // Função para excluir um pedido (DELETE)
 async function excluirPedido(id) {
-    const { error } = await supabase
-        .from('pedidos')
-        .delete()
-        .eq('id', id);
-
-    if (error) {
-        console.error('Erro ao excluir pedido:', error.message);
-    } else {
+    const pedidoRef = database.ref('pedidos/' + id);
+    pedidoRef.remove().then(() => {
         console.log('Pedido excluído com sucesso!');
-        await buscarERenderizarPedidos();
-    }
+    }).catch((error) => {
+        console.error('Erro ao excluir pedido:', error);
+    });
 }
 
 // Eventos e Inicialização
@@ -196,5 +175,5 @@ formPedido.addEventListener('submit', async (event) => {
     fecharModal();
 });
 
-// Ao carregar a página, busca os dados do Supabase
+// Ao carregar a página, busca os dados do Firebase
 document.addEventListener('DOMContentLoaded', buscarERenderizarPedidos);
