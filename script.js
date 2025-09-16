@@ -3,7 +3,7 @@
 const SUPABASE_URL = "https://bofxnitkcixtkmqbapdt.supabase.co"; 
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJvZnhuaXRrY2l4dGttcWJhcGR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgwMzk1MTgsImV4cCI6MjA3MzYxNTUxOH0.sYmR_EzKjlFmXVsV0Qfkz9GxX_t6XBZKR5-YqBo5tdc";
 
-const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = Supabase.createClient("https://bofxnitkcixtkmqbapdt.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJvZnhuaXRrY2l4dGttcWJhcGR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgwMzk1MTgsImV4cCI6MjA3MzYxNTUxOH0.sYmR_EzKjlFmXVsV0Qfkz9GxX_t6XBZKR5-YqBo5tdc");
 
 // Seleção de elementos do DOM
 const addPedidoBtn = document.getElementById('add-pedido-btn');
