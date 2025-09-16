@@ -1,6 +1,3 @@
-// A inicialização do Firebase já está no HTML, então não precisamos mais disso aqui.
-// Apenas use a variável 'database' que foi definida no HTML.
-
 // Seleção de elementos do DOM
 const addPedidoBtn = document.getElementById('add-pedido-btn');
 const listaPedidos = document.getElementById('lista-pedidos');
@@ -10,10 +7,16 @@ const formPedido = document.getElementById('form-pedido');
 const modalTitle = document.getElementById('modal-title');
 const submitBtn = document.getElementById('submit-btn');
 
+// Elementos do Login e Troca de Senha
+const loginModal = document.getElementById('login-modal');
+const loginForm = document.getElementById('login-form');
+const passwordModal = document.getElementById('password-modal');
+const passwordForm = document.getElementById('password-form');
+
 // Array para armazenar os pedidos localmente
 let pedidos = [];
 
-// Função para exibir o modal
+// Funções para lidar com os modais existentes
 function abrirModal(modo = 'criar', pedido = null) {
     modal.style.display = 'block';
     if (modo === 'criar') {
@@ -36,20 +39,17 @@ function abrirModal(modo = 'criar', pedido = null) {
     }
 }
 
-// Função para fechar o modal
 function fecharModal() {
     modal.style.display = 'none';
 }
 
-// Função para renderizar um único item de pedido
+// Funções para renderizar os pedidos
 function renderizarPedido(pedido) {
     const li = document.createElement('li');
     li.classList.add('pedido-item');
     li.setAttribute('data-id', pedido.id);
-
     const pedidoIdFormatado = pedido.id.toString().padStart(4, '0');
     const statusClass = pedido.status === 'Concluído' ? 'status-concluido' : 'status-ativo';
-    
     li.innerHTML = `
         <div class="pedido-header">
             <div class="pedido-info">
@@ -63,37 +63,28 @@ function renderizarPedido(pedido) {
             </div>
         </div>
     `;
-
     li.querySelector('.pedido-header').addEventListener('click', (event) => {
         if (!event.target.closest('.pedido-actions')) {
             abrirModal('detalhes', pedido);
         }
     });
-
     li.querySelector('.concluido-btn').addEventListener('click', async () => {
         const novoStatus = pedido.status === 'Ativo' ? 'Concluído' : 'Ativo';
         await atualizarPedido(pedido.id, { status: novoStatus });
     });
-
     li.querySelector('.excluir-btn').addEventListener('click', async () => {
         await excluirPedido(pedido.id);
     });
-
     listaPedidos.appendChild(li);
 }
 
-// Função para renderizar todos os pedidos na lista
 function renderizarPedidos() {
     listaPedidos.innerHTML = '';
     pedidos.forEach(pedido => renderizarPedido(pedido));
 }
 
 // Funções de CRUD usando Firebase
-
-// Função para buscar e renderizar os pedidos do Firebase (READ)
-// A função onValue é "real-time" e escuta por mudanças nos dados
 function buscarERenderizarPedidos() {
-    console.log('Buscando pedidos do Firebase...');
     const pedidosRef = database.ref('pedidos');
     pedidosRef.on('value', (snapshot) => {
         pedidos = [];
@@ -102,48 +93,109 @@ function buscarERenderizarPedidos() {
             pedidos.push({ id: childSnapshot.key, ...pedido });
         });
         renderizarPedidos();
-        console.log('Pedidos buscados e atualizados com sucesso!');
     });
 }
-
-// Função para adicionar um novo pedido (CREATE)
 async function adicionarPedido(novoPedido) {
-    const newPedidoRef = database.ref('pedidos').push();
-    newPedidoRef.set({
-        tipo: novoPedido.tipo,
-        endereco: novoPedido.endereco,
-        cliente_nome: novoPedido.clienteNome,
-        telefone: novoPedido.telefone,
-        email: novoPedido.email,
-        status: 'Ativo'
-    }).then(() => {
-        console.log('Pedido adicionado com sucesso!');
-    }).catch((error) => {
-        console.error('Erro ao adicionar pedido:', error);
+    const contadorRef = database.ref('counters/pedidos');
+    await contadorRef.transaction((currentCount) => {
+        return (currentCount || 0) + 1;
+    }, (error, committed, snapshot) => {
+        if (error) {
+            console.error("Erro na transação:", error);
+        } else if (committed) {
+            const novoId = snapshot.val();
+            const novoPedidoRef = database.ref('pedidos/' + novoId);
+            novoPedidoRef.set({
+                tipo: novoPedido.tipo,
+                endereco: novoPedido.endereco,
+                cliente_nome: novoPedido.clienteNome,
+                telefone: novoPedido.telefone,
+                email: novoPedido.email,
+                status: 'Ativo'
+            });
+        }
     });
 }
-
-// Função para atualizar um pedido existente (UPDATE)
 async function atualizarPedido(id, updates) {
     const pedidoRef = database.ref('pedidos/' + id);
-    pedidoRef.update(updates).then(() => {
-        console.log('Pedido atualizado com sucesso!');
-    }).catch((error) => {
-        console.error('Erro ao atualizar pedido:', error);
-    });
+    pedidoRef.update(updates);
 }
-
-// Função para excluir um pedido (DELETE)
 async function excluirPedido(id) {
     const pedidoRef = database.ref('pedidos/' + id);
-    pedidoRef.remove().then(() => {
-        console.log('Pedido excluído com sucesso!');
-    }).catch((error) => {
-        console.error('Erro ao excluir pedido:', error);
-    });
+    pedidoRef.remove();
 }
 
-// Eventos e Inicialização
+// **LÓGICA DE AUTENTICAÇÃO E LOGIN**
+
+// Função de login
+function loginUser(email, password) {
+    auth.signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            const user = userCredential.user;
+            // Checa no banco de dados se a senha precisa ser trocada
+            database.ref('users/' + user.uid).once('value').then((snapshot) => {
+                const userData = snapshot.val();
+                if (userData && userData.needsPasswordChange) {
+                    passwordModal.style.display = 'block';
+                    loginModal.style.display = 'none';
+                } else {
+                    alert('Login bem-sucedido!');
+                    loginModal.style.display = 'none';
+                    document.getElementById('add-pedido-btn').style.display = 'block';
+                    buscarERenderizarPedidos();
+                }
+            });
+        })
+        .catch((error) => {
+            alert('Erro de login: ' + error.message);
+        });
+}
+
+// Função para trocar a senha
+function changePassword(newPassword) {
+    const user = auth.currentUser;
+    user.updatePassword(newPassword)
+        .then(() => {
+            console.log("Senha alterada com sucesso!");
+            // Remove a flag de primeiro login no banco de dados
+            database.ref('users/' + user.uid + '/needsPasswordChange').set(false);
+            passwordModal.style.display = 'none';
+            alert('Senha alterada com sucesso! Você pode agora acessar o sistema.');
+        })
+        .catch((error) => {
+            console.error("Erro ao alterar a senha:", error);
+        });
+}
+
+// Eventos dos formulários
+loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    loginUser(email, password);
+});
+
+passwordForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const newPassword = document.getElementById('new-password').value;
+    changePassword(newPassword);
+});
+
+// Checa o estado da autenticação ao carregar a página
+auth.onAuthStateChanged((user) => {
+    if (user) {
+        // Usuário logado: esconde o login e mostra o conteúdo
+        loginModal.style.display = 'none';
+        document.getElementById('add-pedido-btn').style.display = 'block';
+        buscarERenderizarPedidos();
+    } else {
+        // Usuário deslogado: mostra a tela de login
+        loginModal.style.display = 'block';
+        document.getElementById('add-pedido-btn').style.display = 'none';
+    }
+});
+
+// Eventos dos botões e formulários de pedido
 addPedidoBtn.addEventListener('click', () => abrirModal('criar'));
 closeModalBtn.addEventListener('click', fecharModal);
 window.addEventListener('click', (event) => {
@@ -174,6 +226,3 @@ formPedido.addEventListener('submit', async (event) => {
 
     fecharModal();
 });
-
-// Ao carregar a página, busca os dados do Firebase
-document.addEventListener('DOMContentLoaded', buscarERenderizarPedidos);

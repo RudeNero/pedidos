@@ -10,13 +10,38 @@
 
     <header>
         <h1>Sistema de Pedidos</h1>
-        <button id="add-pedido-btn">Adicionar Novo Pedido</button>
+        <button id="add-pedido-btn" style="display:none;">Adicionar Novo Pedido</button>
     </header>
 
     <main>
         <ul id="lista-pedidos">
         </ul>
     </main>
+
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <h2>Login</h2>
+            <form id="login-form">
+                <label for="login-email">E-mail:</label>
+                <input type="email" id="login-email" required>
+                <label for="login-password">Senha:</label>
+                <input type="password" id="login-password" required>
+                <button type="submit">Entrar</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="password-modal" class="modal">
+        <div class="modal-content">
+            <h2>Trocar Senha</h2>
+            <p>Esta é a sua primeira vez logando. Por favor, crie uma nova senha.</p>
+            <form id="password-form">
+                <label for="new-password">Nova Senha:</label>
+                <input type="password" id="new-password" required>
+                <button type="submit">Salvar Nova Senha</button>
+            </form>
+        </div>
+    </div>
 
     <div id="modal" class="modal">
         <div class="modal-content">
@@ -44,9 +69,10 @@
             </form>
         </div>
     </div>
-
+    
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
     <script>
         const firebaseConfig = {
@@ -63,6 +89,7 @@
         // Inicializa o Firebase
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
+        const auth = firebase.auth();
     </script>
 
     <script src="script.js"></script>
