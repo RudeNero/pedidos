@@ -3,8 +3,8 @@
 --secondary-color: #2c3e50;
 --completed-color: #2ecc71;
 --delete-color: #e74c3c;
---bg-color: #f4f7f6;
---card-bg-color: #ffffff;
+--bg-color: #ffffff;
+--card-bg-color: #f4f7f6;
 --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
@@ -18,6 +18,10 @@ font-family: sans-serif;
 body {
 background-color: var(--bg-color);
 line-height: 1.6;
+background-image: url(./Mug.png);
+background-repeat: no-repeat;
+background-position: left top;
+background-size: 30%;
 }
 
 header {
